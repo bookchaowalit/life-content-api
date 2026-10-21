@@ -18,7 +18,7 @@ import jwt
 import psycopg
 from psycopg.rows import dict_row
 
-from ._sentry import capture
+from cellkit._sentry import capture
 
 MAX_BACKOFF_SECONDS = 600
 
@@ -30,7 +30,11 @@ def token_workspace(token: str) -> str:
 
 
 def publish_pending(
-    conn: psycopg.Connection, schema: str, platform: Any, token: str, limit: int = 100
+    conn: psycopg.Connection[Any],
+    schema: str,
+    platform: Any,
+    token: str,
+    limit: int = 100,
 ) -> dict[str, int]:
     """Publish due rows of the token's workspace; the batch is claimed and marked in one transaction.
 

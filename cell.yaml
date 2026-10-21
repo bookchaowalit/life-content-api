@@ -164,6 +164,8 @@ resources:
     plural: content-series-episodes
     filters:
     - status
+    ranges:
+    - [recorded_at, published_at]
     fields:
       series_slug:
         type: text
