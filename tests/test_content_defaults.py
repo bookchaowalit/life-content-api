@@ -1,6 +1,5 @@
 """Defaults of each content resource and the rules that are NOT constraints."""
 
-import pytest
 from content_helpers import (
     CONTENTS,
     create_content,
@@ -92,11 +91,6 @@ def test_content_keeps_the_old_id_when_it_is_imported(client, owner):
     assert again.status_code == 409
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="cellkit app.write does not catch NumericValueOutOfRange: a counter above "
-    "2147483647 ends in a 500 instead of a 422",
-)
 def test_a_counter_above_the_integer_range_is_refused_not_a_server_error(client, owner):
     response = create_content(client, owner, views=2**31)
     assert response.status_code == 422
