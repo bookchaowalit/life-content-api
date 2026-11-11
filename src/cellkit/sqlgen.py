@@ -50,6 +50,8 @@ def column(cell: Cell, f: Field) -> str:
         checks.append(f"{f.name} IN ({', '.join(_literal(v) for v in f.values)})")
     if f.type == "text" and f.max_length:
         checks.append(f"length({f.name}) <= {int(f.max_length)}")
+    if f.type == "text" and f.pattern:
+        checks.append(f"{f.name} ~ {_literal(f.pattern)}")
     if f.type == "text" and f.required:
         checks.append(f"length({f.name}) >= 1")
     if f.type in ("int", "bigint", "real") and f.min is not None:

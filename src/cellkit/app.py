@@ -119,6 +119,8 @@ def _constraints(f: Field) -> dict[str, Any]:
     if f.type == "text":
         if f.max_length:
             out["max_length"] = f.max_length
+        if f.pattern:
+            out["pattern"] = f.pattern
         if f.required:
             out["min_length"] = 1
     if f.type in ("int", "bigint", "real"):
