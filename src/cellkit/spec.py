@@ -77,6 +77,8 @@ class Field:
     min: float | None = None
     max: float | None = None
     max_length: int | None = None
+    # text only: a full-match regular expression, valid in both Python and PostgreSQL (~).
+    pattern: str | None = None
     to: str | None = (
         None  # ref target resource (same cell); deleting a referenced row is refused (409)
     )
@@ -218,6 +220,17 @@ def _field(name: str, raw: dict[str, Any], resource: str) -> Field:
         isinstance(raw["max_length"], bool) or not isinstance(raw["max_length"], int)
     ):
         raise SpecError(f"{resource}.{name}: max_length must be an integer")
+    if raw.get("pattern") is not None:
+        if kind != "text" or not isinstance(raw["pattern"], str):
+            raise SpecError(f"{resource}.{name}: pattern is a string on a text field")
+        if not (raw["pattern"].startswith("^") and raw["pattern"].endswith("$")):
+            raise SpecError(f"{resource}.{name}: pattern must be anchored with ^ and $")
+        if "'" in raw["pattern"]:
+            raise SpecError(f"{resource}.{name}: pattern may not contain a quote")
+        try:
+            re.compile(raw["pattern"])
+        except re.error as exc:
+            raise SpecError(f"{resource}.{name}: invalid pattern ({exc})") from exc
     if raw.get("json") not in (None, "array", "object"):
         raise SpecError(f"{resource}.{name}: json must be array or object")
     if "on_delete" in raw:
@@ -238,6 +251,7 @@ def _field(name: str, raw: dict[str, Any], resource: str) -> Field:
         "min",
         "max",
         "max_length",
+        "pattern",
         "to",
         "json",
         "unique",
@@ -253,6 +267,7 @@ def _field(name: str, raw: dict[str, Any], resource: str) -> Field:
         min=raw.get("min"),
         max=raw.get("max"),
         max_length=raw.get("max_length"),
+        pattern=raw.get("pattern"),
         to=raw.get("to"),
         json_kind=raw.get("json"),
         unique=bool(raw.get("unique")),

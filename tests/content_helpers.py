@@ -7,6 +7,13 @@ CONTENTS = "/v1/contents"
 CALENDAR = "/v1/content-calendars"
 EPISODES = "/v1/content-series-episodes"
 METRICS = "/v1/content-series-episode-metrics"
+CAMPAIGNS = "/v1/campaigns"
+
+
+def create_campaign(client: Any, owner: dict[str, str], **fields: Any) -> Any:
+    key = f"camp-{uuid.uuid4().hex[:12]}"
+    body = {"name": "Finance launch", "channel": "pseo", "utm_campaign": key}
+    return client.post(CAMPAIGNS, headers=owner, json={**body, **fields})
 
 
 def create_content(client: Any, owner: dict[str, str], **fields: Any) -> Any:
