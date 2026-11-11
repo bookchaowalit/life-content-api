@@ -50,3 +50,8 @@ CREATE POLICY workspace_isolation ON content.campaigns
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON content.campaigns TO content_api;
 GRANT USAGE ON SEQUENCE content.campaigns_id_seq TO content_api;
+
+-- Idempotent creates of a campaign need its kind in create_keys.
+ALTER TABLE content.create_keys DROP CONSTRAINT create_keys_kind_check;
+ALTER TABLE content.create_keys ADD CONSTRAINT create_keys_kind_check
+    CHECK (kind IN ('content', 'content-calendar', 'content-series-episode', 'content-series-episode-metric', 'campaign'));

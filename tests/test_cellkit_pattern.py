@@ -6,12 +6,12 @@ import pytest
 
 from cellkit import sqlgen
 from cellkit.app import models
-from cellkit.spec import SpecError, parse
+from cellkit.spec import Cell, SpecError, parse
 
 SLUG = "^[a-z0-9][a-z0-9-]{0,9}$"
 
 
-def cell_with(field: dict) -> object:
+def cell_with(field: dict) -> Cell:
     return parse(
         {"cell": "kit", "resources": {"tag": {"fields": {"key": field}}}},
     )
@@ -19,18 +19,18 @@ def cell_with(field: dict) -> object:
 
 def test_a_pattern_becomes_a_check_constraint():
     cell = cell_with({"type": "text", "required": True, "pattern": SLUG})
-    key = cell.resource("tag").fields[0]  # type: ignore[attr-defined]
+    key = cell.resource("tag").fields[0]
     assert key.pattern == SLUG
-    assert f"key ~ '{SLUG}'" in sqlgen.column(cell, key)  # type: ignore[arg-type]
+    assert f"key ~ '{SLUG}'" in sqlgen.column(cell, key)
 
 
 def test_the_api_model_refuses_a_value_that_does_not_match():
     cell = cell_with({"type": "text", "pattern": SLUG})
-    create, _ = models(cell.resource("tag"))  # type: ignore[attr-defined]
-    assert create(key="ok-1").key == "ok-1"  # type: ignore[call-arg, attr-defined]
+    create, _ = models(cell.resource("tag"))
+    assert create(key="ok-1").key == "ok-1"
     for bad in ("Not Ok", "-lead", "a" * 11, "ok-1\n"):
-        with pytest.raises(ValueError):
-            create(key=bad)  # type: ignore[call-arg]
+        with pytest.raises(ValueError, match="should match pattern"):
+            create(key=bad)
 
 
 @pytest.mark.parametrize(

@@ -50,11 +50,19 @@ def test_the_utm_key_is_unique_per_workspace(client, owner, harness, platform):
 # AC-03
 def test_a_campaign_cannot_end_before_it_starts(client, owner):
     late = create_campaign(
-        client, owner, utm_campaign="late", start_date="2026-12-02", end_date="2026-12-01"
+        client,
+        owner,
+        utm_campaign="late",
+        start_date="2026-12-02",
+        end_date="2026-12-01",
     )
     assert late.status_code == 422
     same = create_campaign(
-        client, owner, utm_campaign="same", start_date="2026-12-01", end_date="2026-12-01"
+        client,
+        owner,
+        utm_campaign="same",
+        start_date="2026-12-01",
+        end_date="2026-12-01",
     )
     assert same.status_code == 201
 
@@ -74,12 +82,19 @@ def test_status_defaults_to_planned_and_is_a_known_stage(client, owner):
     created = create_campaign(client, owner, utm_campaign="status-default")
     assert created.json()["status"] == "planned"
     assert create_campaign(client, owner, status="live").status_code == 422
-    assert create_campaign(client, owner, utm_campaign="k", status="killed").status_code == 201
+    assert (
+        create_campaign(client, owner, utm_campaign="k", status="killed").status_code
+        == 201
+    )
 
 
 def test_campaigns_can_be_listed_by_channel_and_status(client, owner):
-    create_campaign(client, owner, utm_campaign="by-email", channel="email", status="active")
-    found = client.get(CAMPAIGNS, headers=owner, params={"channel": "email", "status": "active"})
+    create_campaign(
+        client, owner, utm_campaign="by-email", channel="email", status="active"
+    )
+    found = client.get(
+        CAMPAIGNS, headers=owner, params={"channel": "email", "status": "active"}
+    )
     assert found.status_code == 200
     keys = {row["utm_campaign"] for row in found.json()["items"]}
     assert "by-email" in keys
@@ -90,11 +105,17 @@ def test_content_and_calendar_entries_can_serve_a_campaign(client, owner):
     campaign = create_campaign(client, owner, utm_campaign="served").json()["id"]
     piece = create_content(client, owner, campaign_id=campaign)
     entry = create_entry(client, owner, campaign_id=campaign)
-    assert piece.status_code == 201 and piece.json()["campaign_id"] == campaign
-    assert entry.status_code == 201 and entry.json()["campaign_id"] == campaign
-    listed = client.get(CONTENTS, headers=owner, params={"campaign_id": campaign}).json()
+    assert piece.status_code == 201
+    assert piece.json()["campaign_id"] == campaign
+    assert entry.status_code == 201
+    assert entry.json()["campaign_id"] == campaign
+    listed = client.get(
+        CONTENTS, headers=owner, params={"campaign_id": campaign}
+    ).json()
     assert [row["id"] for row in listed["items"]] == [piece.json()["id"]]
-    listed = client.get(CALENDAR, headers=owner, params={"campaign_id": campaign}).json()
+    listed = client.get(
+        CALENDAR, headers=owner, params={"campaign_id": campaign}
+    ).json()
     assert [row["id"] for row in listed["items"]] == [entry.json()["id"]]
 
 
