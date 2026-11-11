@@ -15,5 +15,9 @@
   URL from `EMPIRE_CONTENT_API`). Set `EMPIRE_MCP_READONLY=1` for list/get only. Never add actor, workspace or token arguments.
 - Merging to `main` deploys production (Railway GitHub source + Wait for CI); verify `/health`
   and one authorized read afterwards. Do not `railway up` from a working tree.
+- The deploy does NOT run migrations. Apply a new migration to Neon `life-content-api` BEFORE merging
+  code that reads it: `CONTENT_DB_MODE=hosted CONTENT_DB_URL_MIGRATOR=<content_migrator URI> .venv/bin/content-db migrate`
+  (the URI comes from the Neon API with `NEON_API_KEY` in Infisical `/neon`; pass it through the environment, never print it).
+  On 2026-11-11 merging 0002 first broke every content and calendar route with 500 for ~25 minutes.
 - Keep the solo-empire registry entry (`content` in
   `repository-catalog/registries/online-systems.yaml`) in sync.
